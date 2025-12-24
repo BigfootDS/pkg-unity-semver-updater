@@ -21,7 +21,7 @@ jobs:
       upload_url: ${{ steps.create_release.outputs.upload_url }}
       semver_commit_hash: ${{ steps.semver_commit.outputs.commit_hash }}
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0
         ref: main
@@ -40,7 +40,7 @@ jobs:
 
     - name: Commit semver changes to repo
       id: semver_commit
-      uses: stefanzweifel/git-auto-commit-action@v5
+      uses: stefanzweifel/git-auto-commit-action@v7
       with:
         branch: main
 
@@ -61,18 +61,16 @@ jobs:
     needs: [draft_release]
     name: Deploy package to NPM
     runs-on: ubuntu-latest
-    env:
-      npm_publish_token: ${{ secrets.NPM_PUBLISH_TOKEN }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ needs.draft_release.outputs.semver_commit_hash }}
       
       - name: Set up NodeJS
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version: 24
       
       - name: Install dependencies
         run: npm install
@@ -80,11 +78,9 @@ jobs:
       - name: Build TypeScript into JavaScript
         run: npm run build:code
 
-      - name: Build app
-        uses: JS-DevTools/npm-publish@v3
-        with:
-          token: ${{ secrets.npm_publish_token }}
-          access: "public"
+      - name: Publish the package
+        if: ${{ success() }}
+        run: NODE_AUTH_TOKEN="" npm publish --access public --provenance
 
 
   
@@ -96,12 +92,20 @@ jobs:
     name: Publish the Draft Release
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout GitHub Action
-      uses: actions/checkout@v4
 
-    - name: Mark release as published
-      uses: eregon/publish-release@v1.0.6
+      # Not sure that we specifically need to checkout here? 
+    - name: Checkout GitHub Action
+      uses: actions/checkout@v6
+
+    # - name: Mark release as published
+    #   uses: eregon/publish-release@v1.0.6
+    #   env:
+    #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    #   with:
+    #     release_id: ${{ needs.draft_release.outputs.release_id }}
+
+    - name: Publish Release
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        release_id: ${{ needs.draft_release.outputs.release_id }}
+        GH_TOKEN: ${{ github.token }}
+        GH_REPO: ${{ github.repository }}
+      run: gh release edit "${{ needs.draft_release.outputs.release_id }}" --draft=false
