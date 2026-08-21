@@ -2,6 +2,10 @@
 
 NodeJS tool to update a Unity project's version to a specified format - typically the semver format.
 
+## Requirements
+
+Node.js 20 or later.
+
 The intention is that this package exists separate from any automation workflow actions that might use it, so we can quickly prototype and iterate on the logic without the hassle of running automated workflows. Looking at you, GitHub Actions, and how painful it is to run things locally.
 
 For example, this GitHub Action uses this package as the core of its logic:
@@ -78,3 +82,21 @@ String formatter example:
 0-banana-1
 Write result: true
 ```
+
+## Development
+
+```sh
+npm ci
+npm test
+npm run pack:check
+```
+
+## Releases
+
+CD releases every conventional commit that reaches `main`; do not manually edit `package.json`'s version or create release tags. The highest-impact commit since the previous release determines the version:
+
+- `feat:` creates a minor release.
+- `type!:` or a `BREAKING CHANGE:` footer creates a major release.
+- Any other conventional commit type creates a patch release.
+
+The workflow rejects a non-conventional commit that reaches `main`, commits the generated version, creates its `vX.Y.Z` tag and GitHub release, then publishes with npm Trusted Publishing. All feature work should use conventional commits and be merged into `main` through a pull request. If squash-merging, ensure the resulting squash commit (usually the pull request title) is conventional too.
