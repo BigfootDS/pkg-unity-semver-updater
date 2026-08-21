@@ -1,6 +1,6 @@
 {
   "name": "@bigfootds/unity-semver-updater",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Update Unity PlayerSettings version values from Node.js.",
   "license": "MIT",
   "author": "BigfootDS",
