@@ -1,26 +1,34 @@
 import { stringRegexMatcherForBuildLabel, stringRegexMatcherForMajor, stringRegexMatcherForMinor, stringRegexMatcherForPatch, stringRegexMatcherForQuad, stringRegexMatcherForReleaseLabel } from "../utils/constants";
 
+const matchers: Record<string, string> = {
+	major: stringRegexMatcherForMajor,
+	minor: stringRegexMatcherForMinor,
+	patch: stringRegexMatcherForPatch,
+	quad: stringRegexMatcherForQuad,
+	releaseLabel: stringRegexMatcherForReleaseLabel,
+	buildLabel: stringRegexMatcherForBuildLabel,
+};
+
+function escapeRegex(value: string): string {
+	return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
 
 export function makeRegexpFromStringFormat (stringRule: string): RegExp {
-	let formatRule: string = stringRule;
+	const placeholderPattern = /\{(major|minor|patch|quad|releaseLabel|buildLabel)\}/g;
+	let source = "";
+	let lastIndex = 0;
 
+	for (const match of stringRule.matchAll(placeholderPattern)) {
+		const placeholder = match[1];
+		const matcher = matchers[placeholder];
+		if (matcher === undefined || match.index === undefined) {
+			continue;
+		}
+		source += escapeRegex(stringRule.slice(lastIndex, match.index));
+		source += matcher;
+		lastIndex = match.index + match[0].length;
+	}
 
-	// console.log("Format rule before regex escaping:\n"+formatRule);
-	formatRule = formatRule.replace(/[.*?^$()|[\]\\]/g, '\\$&');
-	formatRule = formatRule.replace(/[+]/g, '\\\$&');
-	// console.log("Format rule after regex escaping:\n"+formatRule);
-
-	formatRule = formatRule.replace("{major}", stringRegexMatcherForMajor);
-	formatRule = formatRule.replace("{minor}", stringRegexMatcherForMinor);
-	formatRule = formatRule.replace("{patch}", stringRegexMatcherForPatch);
-	formatRule = formatRule.replace("{quad}", stringRegexMatcherForQuad);
-
-	formatRule = formatRule.replace("{releaseLabel}", stringRegexMatcherForReleaseLabel);
-	formatRule = formatRule.replace("{buildLabel}", stringRegexMatcherForBuildLabel);
-
-	
-
-	let formatRuleAsLiteral: string = eval("`" + formatRule + "`");
-
-	return new RegExp(formatRuleAsLiteral, "gm");
+	source += escapeRegex(stringRule.slice(lastIndex));
+	return new RegExp(source, "gm");
 }

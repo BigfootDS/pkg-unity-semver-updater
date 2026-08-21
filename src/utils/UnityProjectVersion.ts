@@ -199,22 +199,20 @@ export class UnityProjectVersion {
 	 * @returns {string} A semver string that follows the format rule if one was provided, or a default semver string per the spec if no format rule is provided.
 	 */
 	toFormattedOutput(formatRule: string = "{major}.{minor}.{patch}") : string {
-		let output: string = "";
+		const values: Record<string, string> = {
+			major: String(this.major),
+			minor: String(this.minor),
+			patch: String(this.patch),
+			quad: String(this.quad),
+			revision: String(this.revision),
+			build: String(this.build),
+			releaseLabel: this.releaseLabel,
+			buildLabel: this.buildLabel,
+		};
 
-		formatRule = formatRule.replace("{major}", "${this.major}");
-		formatRule = formatRule.replace("{minor}", "${this.minor}");
-		formatRule = formatRule.replace("{patch}", "${this.patch}");
-		formatRule = formatRule.replace("{quad}", "${this.quad}");
-		formatRule = formatRule.replace("{revision}", "${this.revision}");
-		formatRule = formatRule.replace("{build}", "${this.build}");
-
-		formatRule = formatRule.replace("{releaseLabel}", "${this.releaseLabel}");
-		formatRule = formatRule.replace("{buildLabel}", "${this.buildLabel}");
-
-
-		output = eval("`" + formatRule + "`");
-
-
-		return output;
+		return formatRule.replace(
+			/\{(major|minor|patch|quad|revision|build|releaseLabel|buildLabel)\}/g,
+			(_placeholder, name: string) => values[name] ?? "",
+		);
 	}
 }

@@ -36,16 +36,15 @@ export class ProjectSettingsHelpers {
 	 * @param {string} valueFormat A string that will get processed and turned into regex to find an existing project's semver version.
 	 * @returns {string} The semver value assigned to the bundleVersion property of the targeted `ProjectSettings.asset` file, in a helper format for multiple Unity-supported platforms.
 	 */
-	static async getExistingBundleVersion(targetFilePath: string, valueFormat: string = `bundleVersion: ${regexSemverWithQuadAndExtensions.source}`): Promise<UnityProjectVersion|null>{
-
-		console.log("Will use this regex to find existing semver data in the target file:\n" + valueFormat);
-
+	static async getExistingBundleVersion(targetFilePath: string, valueFormat?: string): Promise<UnityProjectVersion|null>{
 		let fileAsItWasRead: string = await readTargetFile(targetFilePath);
 
-		let regexResult: RegExpExecArray|string = makeRegexpFromStringFormat(valueFormat).exec(fileAsItWasRead) || "";
+		let regexResult: RegExpExecArray|string = "";
+		if (valueFormat !== undefined) {
+			regexResult = makeRegexpFromStringFormat(valueFormat).exec(fileAsItWasRead) || "";
+		}
 		if (regexResult == ""){
-			console.log("Custom format for semver regex did not find anything. Falling back to 'default plus release label plus build label plus quad number' regex instead.");
-			regexResult =  regexFindBundleVersionWithQuad.exec(fileAsItWasRead) || "";
+			regexResult = regexFindBundleVersionWithQuad.exec(fileAsItWasRead) || "";
 		}
 
 		if (regexResult == ""){
@@ -76,7 +75,7 @@ export class ProjectSettingsHelpers {
 	 * @param {string} searchFormat A string that will get processed and turned into regex to find an existing project's semver version.
 	 * @returns {boolean} True on a smooth, successful write. False if anything went wrong.
 	 */
-	static async writeToProjectSettings(targetFilePath: string, targetPropertyCollection: PlayerSettingsVersionStrings, searchFormat: string = regexSemverWithQuadAndExtensions.source): Promise<boolean>{
+	static async writeToProjectSettings(targetFilePath: string, targetPropertyCollection: PlayerSettingsVersionStrings, searchFormat?: string): Promise<boolean>{
 		let success = false;
 
 		let fileAsItWasRead: string = await readTargetFile(targetFilePath);
@@ -85,9 +84,10 @@ export class ProjectSettingsHelpers {
 
 		let propertiesNotUpdated: string[] = [];
 
-		let targetPropEntries = Object.entries(targetPropertyCollection);
-		for (let index = 0; index < targetPropEntries.length; index++) {
-			const targetProp = targetPropEntries[index];
+		for (const targetProp of Object.entries(targetPropertyCollection)) {
+			if (targetProp[1] === null) {
+				continue;
+			}
 			
 			switch (targetProp[0]) {
 				case "bundleVersion":
@@ -100,8 +100,9 @@ export class ProjectSettingsHelpers {
 				case "psp2MasterVersion":
 				case "psp2AppVersion":
 				case "supportedProperty":
-					let customFormatRegexp: RegExp = makeRegexpFromStringFormat(`${targetProp[0]}: ` + searchFormat);
-					// console.log(customFormatRegexp);
+					let customFormatRegexp: RegExp = searchFormat === undefined
+						? new RegExp(`\\b${targetProp[0]}: ${regexSemverWithQuadAndExtensions.source}`, "gm")
+						: makeRegexpFromStringFormat(`${targetProp[0]}: ${searchFormat}`);
 					let tempFileModified: string = fileModified.replace(customFormatRegexp, `${targetProp[0]}: ${targetProp[1]}`)
 					
 					if (fileModified != tempFileModified){
@@ -127,7 +128,4 @@ export class ProjectSettingsHelpers {
 		return success;
 	}
 }
-
-
-
 
