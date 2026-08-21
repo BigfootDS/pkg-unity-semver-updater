@@ -20,8 +20,11 @@ export function makeRegexpFromStringFormat (stringRule: string): RegExp {
 
 	for (const match of stringRule.matchAll(placeholderPattern)) {
 		const placeholder = match[1];
+		if (placeholder === undefined || match.index === undefined) {
+			continue;
+		}
 		const matcher = matchers[placeholder];
-		if (matcher === undefined || match.index === undefined) {
+		if (matcher === undefined) {
 			continue;
 		}
 		source += escapeRegex(stringRule.slice(lastIndex, match.index));

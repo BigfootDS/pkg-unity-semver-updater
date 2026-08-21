@@ -1,24 +1,29 @@
 {
   "name": "@bigfootds/unity-semver-updater",
   "version": "0.0.5",
-  "description": "NodeJS tool to update a Unity project's version to a specified format - typically the semver format.",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "description": "Update Unity PlayerSettings version values from Node.js.",
+  "license": "MIT",
+  "author": "BigfootDS",
+  "type": "commonjs",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
       "default": "./dist/index.js"
     }
   },
   "scripts": {
-    "dev": "ts-node ./src/index.ts",
-    "build:code": "tsc",
-    "build:docs": "jsdoc ./src -r -c ./jsdoc.json",
-    "test": "npm run build:code && node --test test/*.test.js"
+    "build": "tsc --project tsconfig.json",
+    "build:code": "npm run build",
+    "test": "npm run build && node --test test/*.test.js",
+    "pack:check": "npm pack --dry-run",
+    "prepack": "npm run build"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/BigfootDS/unity-semver-updater.git"
+    "url": "https://github.com/BigfootDS/unity-semver-updater"
   },
   "keywords": [
     "unity",
@@ -28,20 +33,24 @@
     "semver",
     "utility"
   ],
-  "author": {
-    "name": "Alex Stormwood",
-    "email": "alex@bigfootds.com",
-    "url": "https://github.com/AlexStormwood"
-  },
-  "license": "MIT",
   "bugs": {
     "url": "https://github.com/BigfootDS/unity-semver-updater/issues"
   },
   "homepage": "https://github.com/BigfootDS/unity-semver-updater#readme",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
   "devDependencies": {
-    "@types/jest": "^30.0.0",
-    "@types/node": "^25.0.3",
-    "jest": "^30.2.0",
-    "typescript": "^5.9.3"
+    "@types/node": "^24.13.3",
+    "typescript": "^7.0.2"
+  },
+  "engines": {
+    "node": ">=20"
   }
 }
