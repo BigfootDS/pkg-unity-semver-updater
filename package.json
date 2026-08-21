@@ -23,7 +23,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/BigfootDS/unity-semver-updater"
+    "url": "https://github.com/BigfootDS/pkg-unity-semver-updater/"
   },
   "keywords": [
     "unity",
@@ -34,9 +34,9 @@
     "utility"
   ],
   "bugs": {
-    "url": "https://github.com/BigfootDS/unity-semver-updater/issues"
+    "url": "https://github.com/BigfootDS/pkg-unity-semver-updater/issues"
   },
-  "homepage": "https://github.com/BigfootDS/unity-semver-updater#readme",
+  "homepage": "https://github.com/BigfootDS/pkg-unity-semver-updater#readme",
   "files": [
     "dist",
     "README.md",
